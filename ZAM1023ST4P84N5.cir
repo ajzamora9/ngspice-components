@@ -1,0 +1,79 @@
+*ZAM1023ST4P84N5 Product NGSPICE SIMULATION
+.TITLE ZAM1023ST4P84N5
+*ngspice coded by Arct John Zamora
+*rev 102424
+*=======================================================================================================
+.GLOBAL gnd vcc
+*=======================================================================================================
+*MAIN
+*=======================================================================================================
+* a - stable supply
+* b - DUT supply
+* k - Reset Time Output
+* 0 - ground
+VD a 0 5V
+VA b 0 PULSE( 0 5 0 0.001 0.001 0.002 0.006 5 )
+X1 b k 0 delT
+X2 k o a 0 SchT
+
+*=======================================================================================================
+
+*Subcircuit Section
+*=======================================================================================================
+*Opamp for Schmitt Trigger
+*=======================================================================================================
+
+*.SUBCKT opamp inp inn ap an b c d op0 out
+.SUBCKT opamp inp inn op0 out
+
+Voff inp inn 125uV
+Cin1 ap op0 1pF
+Rin1 ap op0 1T
+Ib1 ap op0 30nA
+Ioff ap op0 60nA
+
+Cin ap an 2pF
+Rin ap an 1G
+
+Ib2 an op0 90nA
+Rin2 an op0 1T
+Cin2 an op0 2pF
+
+G1 b op0 ap an 1; vccs 1
+R5 b op0 500k
+C4 b op0 13.263nF
+
+G2 c op0 b op0 1; vccs 2
+R6 c op0 1
+C5 c op0 9.362nF
+
+E1 d op0 c op0 1; vcvs 1
+Rout d out 20
+
+.ENDS
+
+*=======================================================================================================
+*Reset Timing Circuit delT
+*=======================================================================================================
+
+.SUBCKT delT delTi delTo del0
+
+Rdel delTi delTo 1k
+Cdel delTo del0 1nF
+
+.ENDS
+
+*=======================================================================================================
+*Schmitt Trigger
+*=======================================================================================================
+
+*.SUBCKT SchT SchTi SchTo Schs Sch0 Vp c
+.SUBCKT SchT SchTi SchTo Schs Sch0
+
+R1 c Sch0 100k ; res from central node to gnd
+R2 Vp c 682 ; res from possitive opamp supply to central node
+Rf Sch0 c 98.636k ; feedback resistance
+Xop c SchTi SchTo Sch0 opamp
+
+.ENDS
+
